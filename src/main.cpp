@@ -179,10 +179,10 @@ void setup() {
 }
 
 void loop() {
-  if (mqttClient.connected()) {
-    mqttClient.loop();
-  } else {
-    mqtt_reconnect();
-  }
+  /* if (mqttClient.connected()) { */
+  /*   mqttClient.loop(); */
+  /* } else { */
+  /*   mqtt_reconnect(); */
+  /* } */
   server.handleClient();
 }
