@@ -12,6 +12,7 @@ WebServer server(80);
 const char APP_NAME[] = "doorbell";
 
 const int RELAY_PIN = 16;
+const int BUTTON_PIN = 17;
 
 // MQTT server config.
 char defaultMqttServer[40] = "";
@@ -123,6 +124,7 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(RELAY_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT);
 
   // Allow the user to configure MQTT params on the same UI as the WiFi.
   WiFiManagerParameter mqttServerField("server", "mqtt server", defaultMqttServer, 40);
@@ -190,8 +192,9 @@ void loop() {
   /* } */
   server.handleClient();
 
-  digitalWrite(RELAY_PIN, HIGH);
-  delay(3000);
-  digitalWrite(RELAY_PIN, LOW);
-  delay(500);
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    digitalWrite(RELAY_PIN, HIGH);
+    delay(3000);
+    digitalWrite(RELAY_PIN, LOW);
+  }
 }
