@@ -152,7 +152,7 @@ void setup() {
     Serial.println("WiFi connected");
   }
   else {
-    Serial.println("WiFi not connected, condif portal running");
+    Serial.println("WiFi not connected, config portal running");
   }
 
   if(shouldSaveConfig) {
