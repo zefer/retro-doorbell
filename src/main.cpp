@@ -8,6 +8,12 @@ Preferences preferences;
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 WebServer server(80);
+WiFiManager wifiManager;
+
+WiFiManagerParameter *mqttServerField;
+WiFiManagerParameter *mqttPortField;
+WiFiManagerParameter *mqttNodeField;
+WiFiManagerParameter *mqttPrefixField;
 
 const char APP_NAME[] = "doorbell";
 
@@ -79,7 +85,6 @@ void webHandleReset() {
   preferences.end();
 
   // Clear the WiFi connection credentials.
-  WiFiManager wifiManager;
   wifiManager.resetSettings();
 
   ESP.restart();
@@ -119,8 +124,7 @@ void mqtt_reconnect() {
 }
 
 void setup() {
-  WiFiManager wifiManager;
-
+  WiFi.mode(WIFI_STA);
   preferences.begin(APP_NAME, false);
   Serial.begin(9600);
 
@@ -128,24 +132,25 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT);
 
   // Allow the user to configure MQTT params on the same UI as the WiFi.
-  WiFiManagerParameter mqttServerField("server", "mqtt server", defaultMqttServer, 40);
-  WiFiManagerParameter mqttPortField("port", "mqtt port", defaultMqttPort, 6);
-  WiFiManagerParameter mqttNodeField("nodename", "mqtt node name", defaultMqttNodeName, 40);
-  WiFiManagerParameter mqttPrefixField("prefix", "mqtt prefix", defaultMqttPrefix, 40);
-  wifiManager.addParameter(&mqttServerField);
-  wifiManager.addParameter(&mqttPortField);
-  wifiManager.addParameter(&mqttNodeField);
-  wifiManager.addParameter(&mqttPrefixField);
+  mqttServerField = new WiFiManagerParameter("server", "mqtt server", defaultMqttServer, 40);
+  mqttPortField = new WiFiManagerParameter("port", "mqtt port", defaultMqttPort, 6);
+  mqttNodeField = new WiFiManagerParameter("nodename", "mqtt node name", defaultMqttNodeName, 40);
+  mqttPrefixField = new WiFiManagerParameter("prefix", "mqtt prefix", defaultMqttPrefix, 40);
+  wifiManager.addParameter(mqttServerField);
+  wifiManager.addParameter(mqttPortField);
+  wifiManager.addParameter(mqttNodeField);
+  wifiManager.addParameter(mqttPrefixField);
 
   wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalBlocking(false);
+  wifiManager.setConfigPortalTimeout(60);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  wifiManager.autoConnect();
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+  if(wifiManager.autoConnect("DoorbellAP")){
+    Serial.println("WiFi connected");
   }
-  Serial.println("WiFi connected");
-
+  else {
+    Serial.println("WiFi not connected, condif portal running");
+  }
 
   if(shouldSaveConfig) {
     Serial.println("Writing MQTT config vars");
@@ -153,10 +158,10 @@ void setup() {
     char port[6];
     char node[40];
     char prefix[40];
-    strcpy(server, mqttServerField.getValue());
-    strcpy(port, mqttPortField.getValue());
-    strcpy(node, mqttNodeField.getValue());
-    strcpy(prefix, mqttPrefixField.getValue());
+    strcpy(server, mqttServerField->getValue());
+    strcpy(port, mqttPortField->getValue());
+    strcpy(node, mqttNodeField->getValue());
+    strcpy(prefix, mqttPrefixField->getValue());
     // Persist the user-input MQTT params to flash storage.
     preferences.putString("mqttServer", server);
     preferences.putString("mqttPort", port);
@@ -188,6 +193,7 @@ void setup() {
 }
 
 void loop() {
+  wifiManager.process();
   /* if (mqttClient.connected()) { */
   /*   mqttClient.loop(); */
   /* } else { */
