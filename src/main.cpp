@@ -20,6 +20,7 @@ const char APP_NAME[] = "doorbell";
 const int RELAY_PIN = 16;
 const int BUTTON_PIN = 17;
 
+unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
 
 // MQTT server config.
@@ -214,10 +215,17 @@ void loop() {
   /* } */
   server.handleClient();
 
+  // Deactivate the doorbell chime after a delay.
+  if(millis() - lastButtonPushTime > 3000) {
+    if (digitalRead(RELAY_PIN) == HIGH) {
+      digitalWrite(RELAY_PIN, LOW);
+    }
+  }
+  
+  // Detect button push.
   if (digitalRead(BUTTON_PIN) == HIGH) {
     digitalWrite(RELAY_PIN, HIGH);
     mqttClient.publish(mqttTopic, "pressed");
-    delay(3000);
-    digitalWrite(RELAY_PIN, LOW);
+    lastButtonPushTime = millis();
   }
 }
