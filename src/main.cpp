@@ -18,11 +18,12 @@ const int BUTTON_PIN = 17;
 char defaultMqttServer[40] = "";
 char defaultMqttPort[6] = "1883";
 char defaultMqttNodeName[40] = "doorbell";
-char defaultMqttPrefix[40] = "home/frontdoor/doorbell";
+char defaultMqttPrefix[40] = "home/frontdoor";
 String mqttServer;
 String mqttPort;
 String mqttNodeName;
 String mqttPrefix;
+char mqttTopic[128];
 
 bool shouldSaveConfig = false;
 
@@ -170,11 +171,13 @@ void setup() {
   mqttNodeName = preferences.getString("mqttNodeName", defaultMqttNodeName);
   mqttPrefix = preferences.getString("mqttPrefix", defaultMqttPrefix);
   preferences.end();
+  sprintf(mqttTopic, "%s/%s", mqttPrefix.c_str(), mqttNodeName.c_str());
   Serial.println("using MQTT prefs...");
   Serial.println(mqttServer);
   Serial.println(mqttPort);
   Serial.println(mqttNodeName);
   Serial.println(mqttPrefix);
+  Serial.println(mqttTopic);
 
   server.on("/status", HTTP_GET, webHandleStatus);
   server.on("/reboot", HTTP_PUT, webHandleReboot);
@@ -194,6 +197,7 @@ void loop() {
 
   if (digitalRead(BUTTON_PIN) == HIGH) {
     digitalWrite(RELAY_PIN, HIGH);
+    mqttClient.publish(mqttTopic, "pressed");
     delay(3000);
     digitalWrite(RELAY_PIN, LOW);
   }
