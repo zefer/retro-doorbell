@@ -101,7 +101,7 @@ void webHandleReboot() {
 }
 
 // https://github.com/knolleary/pubsubclient/blob/master/examples/mqtt_esp8266/mqtt_esp8266.ino
-void mqtt_reconnect() {
+void mqttReconnect() {
   if(mqttClient.connected()) {
     return;
   }
@@ -122,7 +122,7 @@ void mqtt_reconnect() {
     Serial.println("MQTT connected");
   } else {
     Serial.print("MQTT connection failed, rc=");
-    Serial.print(mqttClient.state());
+    Serial.println(mqttClient.state());
   }
 }
 
@@ -208,11 +208,12 @@ void loop() {
     lastStatusCheckTime = millis();
   }
 
-  /* if (mqttClient.connected()) { */
-  /*   mqttClient.loop(); */
-  /* } else { */
-  /*   mqtt_reconnect(); */
-  /* } */
+  if (mqttClient.connected()) {
+    mqttClient.loop();
+  } else {
+    mqttReconnect();
+  }
+
   server.handleClient();
 
   // Deactivate the doorbell chime after a delay.
