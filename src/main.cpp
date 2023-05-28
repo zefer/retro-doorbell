@@ -20,6 +20,8 @@ const char APP_NAME[] = "doorbell";
 const int RELAY_PIN = 16;
 const int BUTTON_PIN = 17;
 
+unsigned long lastStatusCheckTime = 0;
+
 // MQTT server config.
 char defaultMqttServer[40] = "";
 char defaultMqttPort[6] = "1883";
@@ -145,6 +147,7 @@ void setup() {
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setConfigPortalTimeout(60);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
+  wifiManager.setWiFiAutoReconnect(true);
   if(wifiManager.autoConnect("DoorbellAP")){
     Serial.println("WiFi connected");
   }
@@ -194,6 +197,16 @@ void setup() {
 
 void loop() {
   wifiManager.process();
+
+  // Check WiFi status every 5 minutes and reboot if not connected.
+  if(millis()-lastStatusCheckTime > 300000 ){
+    if(WiFi.status() != WL_CONNECTED){
+      Serial.println("No Wifi, rebooting");
+      wifiManager.reboot();
+    }
+    lastStatusCheckTime = millis();
+  }
+
   /* if (mqttClient.connected()) { */
   /*   mqttClient.loop(); */
   /* } else { */
