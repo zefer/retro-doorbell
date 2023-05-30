@@ -179,25 +179,29 @@ void setup() {
   Serial.println("HTTP server started");
 }
 
+void saveConfig() {
+  Serial.println("Writing MQTT config vars");
+  char server[40];
+  char port[6];
+  char node[40];
+  char prefix[40];
+  strcpy(server, mqttServerField->getValue());
+  strcpy(port, mqttPortField->getValue());
+  strcpy(node, mqttNodeField->getValue());
+  strcpy(prefix, mqttPrefixField->getValue());
+  // Persist the user-input MQTT params to flash storage.
+  preferences.putString("mqttServer", server);
+  preferences.putString("mqttPort", port);
+  preferences.putString("mqttNodeName", node);
+  preferences.putString("mqttPrefix", prefix);
+  shouldSaveConfig = false;
+  preferences.end();
+  ESP.restart();
+}
+
 void loop() {
   if(shouldSaveConfig) {
-    Serial.println("Writing MQTT config vars");
-    char server[40];
-    char port[6];
-    char node[40];
-    char prefix[40];
-    strcpy(server, mqttServerField->getValue());
-    strcpy(port, mqttPortField->getValue());
-    strcpy(node, mqttNodeField->getValue());
-    strcpy(prefix, mqttPrefixField->getValue());
-    // Persist the user-input MQTT params to flash storage.
-    preferences.putString("mqttServer", server);
-    preferences.putString("mqttPort", port);
-    preferences.putString("mqttNodeName", node);
-    preferences.putString("mqttPrefix", prefix);
-    shouldSaveConfig = false;
-    preferences.end();
-    ESP.restart();
+    saveConfig();
   }
 
   wifiManager.process();
