@@ -149,28 +149,12 @@ void setup() {
   wifiManager.setConfigPortalTimeout(60);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setWiFiAutoReconnect(true);
+
   if(wifiManager.autoConnect("DoorbellAP")){
     Serial.println("WiFi connected");
   }
   else {
     Serial.println("WiFi not connected, config portal running");
-  }
-
-  if(shouldSaveConfig) {
-    Serial.println("Writing MQTT config vars");
-    char server[40];
-    char port[6];
-    char node[40];
-    char prefix[40];
-    strcpy(server, mqttServerField->getValue());
-    strcpy(port, mqttPortField->getValue());
-    strcpy(node, mqttNodeField->getValue());
-    strcpy(prefix, mqttPrefixField->getValue());
-    // Persist the user-input MQTT params to flash storage.
-    preferences.putString("mqttServer", server);
-    preferences.putString("mqttPort", port);
-    preferences.putString("mqttNodeName", node);
-    preferences.putString("mqttPrefix", prefix);
   }
 
   // load MQTT config vars from flash storage.
@@ -179,7 +163,6 @@ void setup() {
   mqttPort = preferences.getString("mqttPort", defaultMqttPort).toInt();
   mqttNodeName = preferences.getString("mqttNodeName", defaultMqttNodeName);
   mqttPrefix = preferences.getString("mqttPrefix", defaultMqttPrefix);
-  preferences.end();
   sprintf(mqttTopic, "%s/%s", mqttPrefix.c_str(), mqttNodeName.c_str());
   Serial.println("using MQTT prefs...");
   Serial.println(mqttServer);
@@ -197,6 +180,26 @@ void setup() {
 }
 
 void loop() {
+  if(shouldSaveConfig) {
+    Serial.println("Writing MQTT config vars");
+    char server[40];
+    char port[6];
+    char node[40];
+    char prefix[40];
+    strcpy(server, mqttServerField->getValue());
+    strcpy(port, mqttPortField->getValue());
+    strcpy(node, mqttNodeField->getValue());
+    strcpy(prefix, mqttPrefixField->getValue());
+    // Persist the user-input MQTT params to flash storage.
+    preferences.putString("mqttServer", server);
+    preferences.putString("mqttPort", port);
+    preferences.putString("mqttNodeName", node);
+    preferences.putString("mqttPrefix", prefix);
+    shouldSaveConfig = false;
+    preferences.end();
+    ESP.restart();
+  }
+
   wifiManager.process();
 
   // Check WiFi status every 5 minutes and reboot if not connected.
