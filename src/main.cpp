@@ -93,6 +93,19 @@ void webHandleReset() {
   ESP.restart();
 }
 
+void ringDoorbell() {
+  digitalWrite(RELAY_PIN, HIGH);
+  mqttClient.publish(mqttTopic, "pressed");
+  lastButtonPushTime = millis();
+}
+
+// Ring the doorbell!
+void webHandleRing() {
+  Serial.println("Ringing the doorbell.");
+  server.send(202);
+  ringDoorbell();
+}
+
 // Simply reboot the system.
 void webHandleReboot() {
   Serial.println("Rebooting.");
@@ -174,6 +187,7 @@ void setup() {
   server.on("/status", HTTP_GET, webHandleStatus);
   server.on("/reboot", HTTP_PUT, webHandleReboot);
   server.on("/reset", HTTP_PUT, webHandleReset);
+  server.on("/ring", HTTP_PUT, webHandleRing);
   server.onNotFound(webHandleNotFound);
   server.begin();
   Serial.println("HTTP server started");
@@ -232,8 +246,6 @@ void loop() {
   
   // Detect button push.
   if (digitalRead(BUTTON_PIN) == HIGH) {
-    digitalWrite(RELAY_PIN, HIGH);
-    mqttClient.publish(mqttTopic, "pressed");
-    lastButtonPushTime = millis();
+    ringDoorbell();
   }
 }
