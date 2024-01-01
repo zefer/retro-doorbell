@@ -122,8 +122,12 @@ void mqttReconnect() {
     return;
   }
 
+  if(WiFi.status() != WL_CONNECTED){
+    return;
+  }
+
   static unsigned long lastMqttReconnectMillis = 0;
-  if(millis() - lastMqttReconnectMillis < 5000) {
+  if(millis() - lastMqttReconnectMillis < 2000) {
     return;
   }
   lastMqttReconnectMillis = millis();
@@ -229,11 +233,11 @@ void loop() {
 
   wifiManager.process();
 
-  // Check WiFi status every 5 minutes and reboot if not connected.
-  if(millis()-lastStatusCheckTime > 300000 ){
+  // Check WiFi status every few seconds and reconnect if not connected.
+  if(millis()-lastStatusCheckTime > 2000 ){
     if(WiFi.status() != WL_CONNECTED){
-      Serial.println("No Wifi, rebooting");
-      wifiManager.reboot();
+      Serial.println("No WiFi, reconnecting");
+      WiFi.reconnect();
     }
     lastStatusCheckTime = millis();
   }
