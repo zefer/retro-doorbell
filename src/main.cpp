@@ -3,6 +3,7 @@
 #include <WebServer.h>
 #include <Preferences.h>
 #include <PubSubClient.h>
+#include <esp_task_wdt.h>
 
 Preferences preferences;
 WiFiClient espClient;
@@ -19,6 +20,8 @@ const char APP_NAME[] = "doorbell";
 
 const int RELAY_PIN = 16;
 const int BUTTON_PIN = 17;
+
+const int WATCHDOG_TIMEOUT = 3;
 
 unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
@@ -191,6 +194,10 @@ void setup() {
   server.onNotFound(webHandleNotFound);
   server.begin();
   Serial.println("HTTP server started");
+
+  Serial.println("Configuring WDT watchdog...");
+  esp_task_wdt_init(WATCHDOG_TIMEOUT, true);
+  esp_task_wdt_add(NULL);
 }
 
 void saveConfig() {
@@ -214,6 +221,8 @@ void saveConfig() {
 }
 
 void loop() {
+  esp_task_wdt_reset();
+
   if(shouldSaveConfig) {
     saveConfig();
   }
@@ -243,7 +252,7 @@ void loop() {
       digitalWrite(RELAY_PIN, LOW);
     }
   }
-  
+
   // Detect button push.
   if (digitalRead(BUTTON_PIN) == HIGH) {
     ringDoorbell();
