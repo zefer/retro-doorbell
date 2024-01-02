@@ -30,6 +30,9 @@ unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
 
+const char SPINNER[] = "<<<<<";
+unsigned int spinnerIdx = 0;
+
 // MQTT server config.
 char defaultMqttServer[40] = "";
 char defaultMqttPort[6] = "1883";
@@ -236,6 +239,7 @@ void displayLoop() {
   }
   lastRenderTime = millis();
 
+  char spinner[1] = "";
   char status1[128] = "";
   char status2[128] = "";
   char status3[128] = "";
@@ -254,10 +258,15 @@ void displayLoop() {
     sprintf_P(status3, "No MQTT! (%s:%i)", mqttServer.c_str(), mqttPort.toInt());
   }
 
+  if(spinnerIdx > 4) spinnerIdx = 0;
+  strcpy(spinner, &SPINNER[spinnerIdx]);
+  spinnerIdx += 1;
+
   display.firstPage();
   do {
     display.setFont(u8g2_font_helvB10_tr);
-    display.drawStr(0,16,"DOORBELL");
+    display.drawStr(0,16, "DOORBELL");
+    display.drawStr(90,16, spinner);
     display.drawStr(0,32, status1);
     display.setFont(u8g2_font_helvR08_tr);
     display.drawStr(0,48, status2);
