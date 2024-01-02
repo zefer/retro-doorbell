@@ -21,7 +21,7 @@ const char APP_NAME[] = "doorbell";
 const int RELAY_PIN = 16;
 const int BUTTON_PIN = 17;
 
-const int WATCHDOG_TIMEOUT = 3;
+const int WATCHDOG_TIMEOUT = 5;
 
 unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
