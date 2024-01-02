@@ -29,6 +29,7 @@ const int WATCHDOG_TIMEOUT = 5;
 unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
+unsigned long lastScreensaveTime = 0;
 
 const char SPINNER[] = "<<<<<";
 unsigned int spinnerIdx = 0;
@@ -234,10 +235,16 @@ void saveConfig() {
 }
 
 void displayLoop() {
-  if(millis()-lastRenderTime < 1000){
+  // Screensave (blank screen) for 5 seconds.
+  if(millis()-lastScreensaveTime < 5000 && lastScreensaveTime > 0) return;
+  if(millis()-lastRenderTime < 1000) return;
+  lastRenderTime = millis();
+
+  if(millis()-lastScreensaveTime > 20000) {
+    lastScreensaveTime = millis();
+    display.clearDisplay();
     return;
   }
-  lastRenderTime = millis();
 
   char spinner[1] = "";
   char status1[128] = "";
