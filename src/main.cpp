@@ -4,6 +4,7 @@
 #include <Preferences.h>
 #include <PubSubClient.h>
 #include <esp_task_wdt.h>
+#include <U8g2lib.h>
 
 Preferences preferences;
 WiFiClient espClient;
@@ -16,6 +17,8 @@ WiFiManagerParameter *mqttPortField;
 WiFiManagerParameter *mqttNodeField;
 WiFiManagerParameter *mqttPrefixField;
 
+U8G2_SH1106_128X64_NONAME_F_HW_I2C display(U8G2_R0, U8X8_PIN_NONE);
+
 const char APP_NAME[] = "doorbell";
 
 const int RELAY_PIN = 16;
@@ -25,6 +28,7 @@ const int WATCHDOG_TIMEOUT = 5;
 
 unsigned long lastButtonPushTime = 0;
 unsigned long lastStatusCheckTime = 0;
+unsigned long lastRenderTime = 0;
 
 // MQTT server config.
 char defaultMqttServer[40] = "";
@@ -202,6 +206,8 @@ void setup() {
   Serial.println("Configuring WDT watchdog...");
   esp_task_wdt_init(WATCHDOG_TIMEOUT, true);
   esp_task_wdt_add(NULL);
+
+  display.begin();
 }
 
 void saveConfig() {
@@ -224,8 +230,45 @@ void saveConfig() {
   ESP.restart();
 }
 
+void displayLoop() {
+  if(millis()-lastRenderTime < 1000){
+    return;
+  }
+  lastRenderTime = millis();
+
+  char status1[128] = "";
+  char status2[128] = "";
+  char status3[128] = "";
+
+  if(WiFi.status() == WL_CONNECTED) {
+    sprintf_P(status1, "%s %i", WiFi.SSID(), WiFi.RSSI());
+    sprintf_P(status2, "%s", WiFi.localIP().toString());
+  } else {
+    strcpy(status1, "No WiFi!");
+    strcpy(status2, "");
+  }
+
+  if (mqttClient.connected()) {
+    sprintf_P(status3, "%s:%i", mqttServer.c_str(), mqttPort.toInt());
+  } else {
+    sprintf_P(status3, "No MQTT! (%s:%i)", mqttServer.c_str(), mqttPort.toInt());
+  }
+
+  display.firstPage();
+  do {
+    display.setFont(u8g2_font_helvB10_tr);
+    display.drawStr(0,16,"DOORBELL");
+    display.drawStr(0,32, status1);
+    display.setFont(u8g2_font_helvR08_tr);
+    display.drawStr(0,48, status2);
+    display.drawStr(0,64, status3);
+  } while ( display.nextPage() );
+}
+
 void loop() {
   esp_task_wdt_reset();
+
+  displayLoop();
 
   if(shouldSaveConfig) {
     saveConfig();
