@@ -242,9 +242,11 @@ void displayLoop() {
 
   if(millis()-lastScreensaveTime > 20000) {
     lastScreensaveTime = millis();
-    display.clearDisplay();
+    display.setPowerSave(1);
     return;
   }
+
+  display.setPowerSave(0);
 
   char spinner[1] = "";
   char status1[128] = "";
