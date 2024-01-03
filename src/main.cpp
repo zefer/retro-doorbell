@@ -324,13 +324,13 @@ void displayStatusLoop() {
 
 void displayLoop() {
   // Doorbell is ringing, display the chime screen.
-  if(lastActivateChimeTime > 0 && millis()-lastActivateChimeTime < 10000) {
+  if(lastActivateChimeTime > 0 && millis()-lastActivateChimeTime < 20000) {
     displayChimeLoop();
     return;
   }
 
   // Show the status screen when activated by user.
-  if(lastActivateStatusTime > 0 && millis()-lastActivateStatusTime < 10000) {
+  if(lastActivateStatusTime > 0 && millis()-lastActivateStatusTime < 15000) {
     displayStatusLoop();
     return;
   }
