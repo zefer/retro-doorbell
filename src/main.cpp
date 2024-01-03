@@ -27,6 +27,7 @@ const int BUTTON_PIN = 17;
 const int WATCHDOG_TIMEOUT = 5;
 
 unsigned long lastChimeTime = 0;
+unsigned long lastStatusInfoTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
 unsigned long lastScreensaveTime = 0;
@@ -64,6 +65,8 @@ void webHandleNotFound() {
 
 // TODO: include MQTT client connection status in JSON.
 void webHandleStatus() {
+  lastStatusInfoTime = millis();
+
   String json;
   json.reserve(1024);
   json += "{\"uptime\": ";
@@ -250,6 +253,9 @@ void displayChimeLoop() {
 void displayStatusLoop() {
   display.setPowerSave(0);
 
+  if(millis()-lastRenderTime < 1000) return;
+  lastRenderTime = millis();
+
   char spinner[1] = "";
   char status1[128] = "";
   char status2[128] = "";
@@ -286,25 +292,21 @@ void displayStatusLoop() {
 }
 
 void displayLoop() {
-  // Doorbell is ringing.
+  // Doorbell is ringing, display the chime screen.
   if(lastChimeTime > 0 && millis()-lastChimeTime < 10000) {
     displayChimeLoop();
     return;
   }
 
-  // Screensave (blank screen) for 5 seconds.
-  if(millis()-lastScreensaveTime < 5000 && lastScreensaveTime > 0) return;
-
-  if(millis()-lastRenderTime < 1000) return;
-  lastRenderTime = millis();
-
-  if(millis()-lastScreensaveTime > 20000) {
-    lastScreensaveTime = millis();
-    display.setPowerSave(1);
+  // Show the status screen.
+  if(lastStatusInfoTime > 0 && millis()-lastStatusInfoTime < 10000) {
+    displayStatusLoop();
     return;
   }
 
-  displayStatusLoop();
+  if(millis()-lastRenderTime < 100) return;
+
+  display.setPowerSave(1);
 }
 
 void loop() {
