@@ -234,18 +234,20 @@ void saveConfig() {
   ESP.restart();
 }
 
-void displayLoop() {
-  // Screensave (blank screen) for 5 seconds.
-  if(millis()-lastScreensaveTime < 5000 && lastScreensaveTime > 0) return;
-  if(millis()-lastRenderTime < 1000) return;
+// Display that the doorbell is ringing.
+void displayChimeLoop() {
+  if(millis()-lastRenderTime < 200) return;
   lastRenderTime = millis();
 
-  if(millis()-lastScreensaveTime > 20000) {
-    lastScreensaveTime = millis();
-    display.setPowerSave(1);
-    return;
-  }
+  display.setPowerSave(0);
+  display.firstPage();
+  do {
+    display.setFont(u8g2_font_helvB14_tr);
+    display.drawStr(38,40, "RING!");
+  } while ( display.nextPage() );
+}
 
+void displayStatusLoop() {
   display.setPowerSave(0);
 
   char spinner[1] = "";
@@ -281,6 +283,28 @@ void displayLoop() {
     display.drawStr(0,48, status2);
     display.drawStr(0,64, status3);
   } while ( display.nextPage() );
+}
+
+void displayLoop() {
+  // Doorbell is ringing.
+  if(lastChimeTime > 0 && millis()-lastChimeTime < 10000) {
+    displayChimeLoop();
+    return;
+  }
+
+  // Screensave (blank screen) for 5 seconds.
+  if(millis()-lastScreensaveTime < 5000 && lastScreensaveTime > 0) return;
+
+  if(millis()-lastRenderTime < 1000) return;
+  lastRenderTime = millis();
+
+  if(millis()-lastScreensaveTime > 20000) {
+    lastScreensaveTime = millis();
+    display.setPowerSave(1);
+    return;
+  }
+
+  displayStatusLoop();
 }
 
 void loop() {
