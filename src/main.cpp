@@ -298,8 +298,20 @@ void displayLoop() {
     return;
   }
 
-  // Show the status screen.
+  // Show the status screen when activated by user.
   if(lastActivateStatusTime > 0 && millis()-lastActivateStatusTime < 10000) {
+    displayStatusLoop();
+    return;
+  }
+
+  // Show the status screen when WiFi or MQTT are not connected.
+  if(WiFi.status() != WL_CONNECTED || !mqttClient.connected()) {
+    displayStatusLoop();
+    return;
+  }
+
+  // Show the status screen after reboot.
+  if(millis() < 15000) {
     displayStatusLoop();
     return;
   }
