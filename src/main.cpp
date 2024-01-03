@@ -36,10 +36,10 @@ const char SPINNER[] = "<<<<<";
 unsigned int spinnerIdx = 0;
 
 // MQTT server config.
-char defaultMqttServer[40] = "";
-char defaultMqttPort[6] = "1883";
-char defaultMqttNodeName[40] = "doorbell";
-char defaultMqttPrefix[40] = "home/frontdoor";
+char defaultMqttServer[] = "";
+char defaultMqttPort[] = "1883";
+char defaultMqttNodeName[] = "doorbell";
+char defaultMqttPrefix[] = "home/frontdoor";
 String mqttServer;
 String mqttPort;
 String mqttNodeName;
@@ -257,10 +257,10 @@ void displayStatusLoop() {
   lastRenderTime = millis();
 
   char spinner[6] = "";
-  char status1[128] = "";
-  char status2[128] = "";
-  char status3[128] = "";
-  char status4[128] = "";
+  char status1[64] = "";
+  char status2[64] = "";
+  char status3[64] = "";
+  char status4[64] = "";
 
   if(WiFi.status() == WL_CONNECTED) {
     sprintf_P(status1, "%s %i", WiFi.SSID(), WiFi.RSSI());
