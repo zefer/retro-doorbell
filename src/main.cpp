@@ -26,8 +26,8 @@ const int BUTTON_PIN = 17;
 
 const int WATCHDOG_TIMEOUT = 5;
 
-unsigned long lastChimeTime = 0;
-unsigned long lastStatusInfoTime = 0;
+unsigned long lastActivateChimeTime = 0;
+unsigned long lastActivateStatusTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
 unsigned long lastScreensaveTime = 0;
@@ -65,7 +65,7 @@ void webHandleNotFound() {
 
 // TODO: include MQTT client connection status in JSON.
 void webHandleStatus() {
-  lastStatusInfoTime = millis();
+  lastActivateStatusTime = millis();
 
   String json;
   json.reserve(1024);
@@ -110,7 +110,7 @@ void webHandleReset() {
 void ringDoorbell() {
   digitalWrite(RELAY_PIN, HIGH);
   mqttClient.publish(mqttTopic, "pressed");
-  lastChimeTime = millis();
+  lastActivateChimeTime = millis();
 }
 
 // Ring the doorbell!
@@ -293,13 +293,13 @@ void displayStatusLoop() {
 
 void displayLoop() {
   // Doorbell is ringing, display the chime screen.
-  if(lastChimeTime > 0 && millis()-lastChimeTime < 10000) {
+  if(lastActivateChimeTime > 0 && millis()-lastActivateChimeTime < 10000) {
     displayChimeLoop();
     return;
   }
 
   // Show the status screen.
-  if(lastStatusInfoTime > 0 && millis()-lastStatusInfoTime < 10000) {
+  if(lastActivateStatusTime > 0 && millis()-lastActivateStatusTime < 10000) {
     displayStatusLoop();
     return;
   }
@@ -338,7 +338,7 @@ void loop() {
   server.handleClient();
 
   // Deactivate the doorbell chime after a delay.
-  if(millis() - lastChimeTime > 3000) {
+  if(millis() - lastActivateChimeTime > 3000) {
     if (digitalRead(RELAY_PIN) == HIGH) {
       digitalWrite(RELAY_PIN, LOW);
     }
