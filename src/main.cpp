@@ -31,6 +31,7 @@ unsigned long lastActivateStatusTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
 unsigned long lastScreensaveTime = 0;
+unsigned int chimeAnimStep = 0;
 
 const char SPINNER[] = "<<<<<";
 unsigned int spinnerIdx = 0;
@@ -239,14 +240,30 @@ void saveConfig() {
 
 // Display that the doorbell is ringing.
 void displayChimeLoop() {
-  if(millis()-lastRenderTime < 200) return;
+  if(millis()-lastRenderTime < 500) return;
   lastRenderTime = millis();
+
+  // Animate by inverting the colours 
+  chimeAnimStep++;
+  int bg;
+  int fg;
+  if(chimeAnimStep % 2 == 0) {
+    bg = 1;
+    fg = 0;
+  } else {
+    bg = 0;
+    fg = 1;
+  }
 
   display.setPowerSave(0);
   display.firstPage();
   do {
-    display.setFont(u8g2_font_helvB14_tr);
-    display.drawStr(38,40, "RING!");
+    display.setDrawColor(bg);
+    display.drawBox(0,0,128,64);
+    display.setDrawColor(fg);
+    display.setFont(u8g2_font_helvB24_tr);
+    display.drawStr(15,28, "DOOR");
+    display.drawStr(15,62, "BELL!");
   } while ( display.nextPage() );
 }
 
@@ -291,7 +308,7 @@ void displayStatusLoop() {
     upUnit[0] = 'm';
     uptime = uptime / 60;
   }
-  sprintf_P(status4, "Up: %i%s Free: %iK", uptime, upUnit, ESP.getFreeHeap()/1024);
+  sprintf_P(status4, "Up: %i%s Free: %iKB", uptime, upUnit, ESP.getFreeHeap()/1024);
 
   display.firstPage();
   do {
@@ -332,6 +349,9 @@ void displayLoop() {
 
   if(millis()-lastRenderTime < 100) return;
 
+  chimeAnimStep = 0;
+  display.clear();
+  display.setDrawColor(1);
   display.setPowerSave(1);
 }
 
