@@ -26,7 +26,7 @@ const int BUTTON_PIN = 17;
 
 const int WATCHDOG_TIMEOUT = 5;
 
-unsigned long lastButtonPushTime = 0;
+unsigned long lastChimeTime = 0;
 unsigned long lastStatusCheckTime = 0;
 unsigned long lastRenderTime = 0;
 unsigned long lastScreensaveTime = 0;
@@ -107,7 +107,7 @@ void webHandleReset() {
 void ringDoorbell() {
   digitalWrite(RELAY_PIN, HIGH);
   mqttClient.publish(mqttTopic, "pressed");
-  lastButtonPushTime = millis();
+  lastChimeTime = millis();
 }
 
 // Ring the doorbell!
@@ -312,7 +312,7 @@ void loop() {
   server.handleClient();
 
   // Deactivate the doorbell chime after a delay.
-  if(millis() - lastButtonPushTime > 3000) {
+  if(millis() - lastChimeTime > 3000) {
     if (digitalRead(RELAY_PIN) == HIGH) {
       digitalWrite(RELAY_PIN, LOW);
     }
