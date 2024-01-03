@@ -256,17 +256,18 @@ void displayStatusLoop() {
   if(millis()-lastRenderTime < 1000) return;
   lastRenderTime = millis();
 
-  char spinner[1] = "";
+  char spinner[6] = "";
   char status1[128] = "";
   char status2[128] = "";
   char status3[128] = "";
+  char status4[128] = "";
 
   if(WiFi.status() == WL_CONNECTED) {
     sprintf_P(status1, "%s %i", WiFi.SSID(), WiFi.RSSI());
     sprintf_P(status2, "%s", WiFi.localIP().toString());
   } else {
-    strcpy(status1, "No WiFi!");
-    strcpy(status2, "");
+    strcpy(status1, "HELP ME!");
+    strcpy(status2, "No WiFi!");
   }
 
   if (mqttClient.connected()) {
@@ -279,15 +280,28 @@ void displayStatusLoop() {
   strcpy(spinner, &SPINNER[spinnerIdx]);
   spinnerIdx += 1;
 
+  char upUnit[] = "s";
+  int uptime = millis()/1000;
+  if(uptime > 18000) {
+    // After 5 hours, display whole hours.
+    upUnit[0] = 'h';
+    uptime = uptime / 3600;
+  } else if (uptime > 600) {
+    // After 10 minutes, display whole minutes.
+    upUnit[0] = 'm';
+    uptime = uptime / 60;
+  }
+  sprintf_P(status4, "Up: %i%s Free: %iK", uptime, upUnit, ESP.getFreeHeap()/1024);
+
   display.firstPage();
   do {
     display.setFont(u8g2_font_helvB10_tr);
-    display.drawStr(0,16, "DOORBELL");
+    display.drawStr(0,16, status1);
     display.drawStr(90,16, spinner);
-    display.drawStr(0,32, status1);
     display.setFont(u8g2_font_helvR08_tr);
-    display.drawStr(0,48, status2);
-    display.drawStr(0,64, status3);
+    display.drawStr(0,32, status2);
+    display.drawStr(0,48, status3);
+    display.drawStr(0,64, status4);
   } while ( display.nextPage() );
 }
 
