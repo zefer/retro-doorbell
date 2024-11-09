@@ -20,6 +20,17 @@ for is a 1961 Friedland Westminster Mark II Model 60.
 
 ![Photo of the chime](images/friedland.png)
 
+## The Iterations
+
+### V1
+
+![Photo of v1](images/v1.jpg)
+
+### V2
+
+![Photo 1 of v2](images/v2a.jpg)
+![Photo 2 of v2](images/v2b.jpg)
+
 ## The Hardware
 
 - ESP32
